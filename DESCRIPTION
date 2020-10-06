@@ -1,0 +1,18 @@
+Package: extofficer
+Title: Convenience Functions for the 'officer' Package
+Version: 0.0.0.9000
+Authors@R: person("Kevin", "Potter", 
+  email = "kevin.w.potter@gmail.com", role = c("aut", "cre"))
+Description: A collection of convenience functions for the 
+  'officer' package to enable quick generation of simple 
+  Word documents with nice tables and figures.
+Depends:
+    R (>= 3.0),
+    dplyr,
+    stringr,
+    officer,
+    flextable
+License: License: MIT + License
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.1
