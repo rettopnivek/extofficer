@@ -18,9 +18,12 @@ create_summary_table(
 \item{x}{Either... 1) A character string, giving
 the variable names (or labels for empty rows)
 to summarize, 2) the data frame of observations
-to summarize, or 3) the summary table, to strip
+to summarize, 3) the summary table, to strip
 away the design elements for the final
-nice-looking product.}
+nice-looking product, or 4) a list of 3-item character
+strings, giving [1] the label, [2] the variable name,
+and [3] the type, category, number of digits, and level,
+separated by the pipe symbol.}
 
 \item{design}{A data frame specifying the design
 of the summary table - columns for the
@@ -137,5 +140,21 @@ st = iris \%>\%
 st = create_summary_table( st )
 colnames( st ) = c( 'Measures', 'All', 'Setosa' )
 st
+
+# Specify full design via list with...
+# [1] Label
+# [2] Variable name
+# [3] Type|Category|Digits|Level
+lst = list(
+  c( "Length", "", "0|NA|NA|1"),
+  c( "Sepal", colnames(iris)[1], "2|NA|1|2" ),
+  c( "Petal", colnames(iris)[3], "2|NA|1|2" ),
+  c( "Width", "", "0|NA|NA|1"),
+  c( "Sepal", colnames(iris)[2], "2|NA|1|2" ),
+  c( "Petal", colnames(iris)[3], "2|NA|1|2" )
+)
+design = create_summary_table( lst )
+st = iris \%>\% create_summary_table( design = design )
+st = create_summary_table( st )
 
 }

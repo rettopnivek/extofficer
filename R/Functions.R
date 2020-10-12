@@ -3,7 +3,7 @@
 # email: kevin.w.potter@gmail.com
 # Please email me directly if you
 # have any questions or comments
-# Last updated 2020-10-06
+# Last updated 2020-10-12
 
 # Table of contents
 # 1) Functions for string manipulation
@@ -714,9 +714,12 @@ word_add_image = function( x,
 #' @param x Either... 1) A character string, giving
 #'   the variable names (or labels for empty rows)
 #'   to summarize, 2) the data frame of observations
-#'   to summarize, or 3) the summary table, to strip
+#'   to summarize, 3) the summary table, to strip
 #'   away the design elements for the final
-#'   nice-looking product.
+#'   nice-looking product, or 4) a list of 3-item character
+#'   strings, giving [1] the label, [2] the variable name,
+#'   and [3] the type, category, number of digits, and level,
+#'   separated by the pipe symbol.
 #' @param design A data frame specifying the design
 #'   of the summary table - columns for the
 #'   summary table are iteratively added to
@@ -820,6 +823,22 @@ word_add_image = function( x,
 #' colnames( st ) = c( 'Measures', 'All', 'Setosa' )
 #' st
 #'
+#' # Specify full design via list with...
+#' # [1] Label
+#' # [2] Variable name
+#' # [3] Type|Category|Digits|Level
+#' lst = list(
+#'   c( "Length", "", "0|NA|NA|1"),
+#'   c( "Sepal", colnames(iris)[1], "2|NA|1|2" ),
+#'   c( "Petal", colnames(iris)[3], "2|NA|1|2" ),
+#'   c( "Width", "", "0|NA|NA|1"),
+#'   c( "Sepal", colnames(iris)[2], "2|NA|1|2" ),
+#'   c( "Petal", colnames(iris)[3], "2|NA|1|2" )
+#' )
+#' design = create_summary_table( lst )
+#' st = iris %>% create_summary_table( design = design )
+#' st = create_summary_table( st )
+#'
 #' @export
 
 create_summary_table = function( x,
@@ -837,11 +856,12 @@ create_summary_table = function( x,
   #   B.A) Trim specified number of characters from labels
   #   B.B) Remove spacing variables
   #   B.C) Capitalize first letter
-  # C) Tidy up summary table
-  # D) Create column for summary table
-  #   D.A) Create new column
-  #   D.B) Add new column to 'design' data frame
-  #   D.C) Adjust positioning of labels
+  # C) List with full details on table
+  # D) Tidy up summary table
+  # E) Create column for summary table
+  #   E.A) Create new column
+  #   E.B) Add new column to 'design' data frame
+  #   E.C) Adjust positioning of labels
 
   # A) Function for computing summary statistics
 
@@ -987,7 +1007,63 @@ create_summary_table = function( x,
 
       }
 
-      # C) Tidy up summary table
+      # C) List with full details on table
+
+      # if input is a list of 3-item character vectors, where...
+      # [1] Label
+      # [2] Variable name
+      # [3] Details separated by the pipe symbol
+
+      if ( is.list(x) ) {
+        if ( length( x[[1]] ) == 3 ) {
+          if ( grepl( '|', x[[1]][3], fixed = T ) ) {
+
+            # Define function to extract design characteristics
+            extract_design_char = function( x, index ) {
+
+              out = NULL
+
+              chr = strsplit( x, split = '|', fixed = T )[[1]]
+
+              if ( index == 1 ) {
+                out = as.integer( chr[1] )
+              }
+              if ( index == 2 ) {
+                out = as.character( chr[2] )
+                if ( out == 'NA' ) out = NA
+              }
+              if ( index == 3 ) {
+                if ( chr[3] == 'NA' ) {
+                  out = NA
+                } else {
+                  out = as.numeric( chr[3] )
+                }
+              }
+              if ( index == 4 ) {
+                out = as.numeric( chr[4] )
+              }
+
+              return( out )
+            }
+
+            # Initialize data frame with
+            # details on table
+            design = data.frame(
+              Variable = sapply( x, function(y) return( y[2] ) ),
+              Label = sapply( x, function(y) return( y[1] ) ),
+              Type = sapply( x, function(y) extract_design_char( y[3], 1 ) ),
+              Category = sapply( x, function(y) extract_design_char( y[3], 2 ) ),
+              Digits = sapply( x, function(y) extract_design_char( y[3], 3 ) ),
+              Level = sapply( x, function(y) extract_design_char( y[3], 4 ) ),
+              stringsAsFactors = F
+            )
+
+            return( design )
+          }
+        }
+      }
+
+      # D) Tidy up summary table
 
       if ( is.data.frame( x ) ) {
 
@@ -1015,14 +1091,14 @@ create_summary_table = function( x,
 
     } else {
 
-      # D) Create column for summary table
+      # E) Create column for summary table
 
       check =
         is.data.frame( design ) &
         is.data.frame( x )
       if ( check ) {
 
-        # D.A) Create new column
+        # E.A) Create new column
 
         # Create new column by
         # applying summary function to
@@ -1045,7 +1121,7 @@ create_summary_table = function( x,
         NC = matrix( rep( '', nrow( design ) ),
                      nrow( design ), 1 )
 
-        # D.B) Add new column to 'design' data frame
+        # E.B) Add new column to 'design' data frame
 
         val = 1
         clm = colnames( design )
@@ -1058,7 +1134,7 @@ create_summary_table = function( x,
         colnames( output )[ ncol( output ) ] =
           paste( 'X', val, sep = '' )
 
-        # D.C) Adjust positioning of labels
+        # E.C) Adjust positioning of labels
 
         if ( any( output$Level > 1 ) ) {
           if ( padding_pos == "left" ) {
