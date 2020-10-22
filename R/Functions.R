@@ -271,13 +271,13 @@ create_ft = function( tbl, tbl_header,
         if ( yes_pad ) {
           if ( padding_pos == "left" ) {
             ft = ft %>%
-              padding( i = i, j = j,
+              flextable::padding( i = i, j = j,
                        padding.left = nchar(padding_sym)*3
               )
           }
           if ( padding_pos == "right" ) {
             ft = ft %>%
-              padding( i = i, j = j,
+              flextable::padding( i = i, j = j,
                        padding.right = nchar(padding_sym)*3
               )
           }
