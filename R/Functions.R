@@ -8,6 +8,7 @@
 # Table of contents
 # 1) Functions for string manipulation
 #   1.1) wtext
+#   1.2)
 # 2) Functions interfacing with 'flextable'
 #   2.1) create_header
 #   2.2) create_ft
@@ -101,6 +102,106 @@ wtext = function( string,
 
   return( out )
 }
+
+# 1.2)
+#' Function to Prepare Text for Transcribing Values
+#'
+#' A function to identify cases within a raw character
+#' string where numeric values can be transcibed,
+#' inserting a placeholder '[[?]]' that can then be
+#' adapted for use with the \code{\link{wtext}} function.
+#'
+#' @param x A character string.
+#' @param char_per_line An integer giving the preferred
+#'   character limit each line of text should not exceed.
+#'
+#' @return A character string that can be processed with
+#'   \code{\link{wtext}} once placeholder '[[?]]' instances
+#'   have been updated.
+#'
+#' @examples
+#' # Example string
+#' x = "Here are three values to update: 1.0, 2.0, and 3.0."
+#' string = prep_for_transcribing( x )
+#' # Identify placeholder positions
+#' pos = which( strsplit( string, split = "" )[[1]] == "?" )
+#' for ( i in 1:length(pos) )
+#'   substr( string, pos[i], pos[i] ) = as.character( i )
+#'
+#' # Update values with 'wtext'
+#' wtext( string, strip_dbl = T, values = c( 4, 5, 7 ) )
+#'
+#' @export
+
+prep_for_transcribing = function( x, char_per_line = 50 ) {
+
+  # Convert to single space
+  x = gsub( "  ", " ", x, fixed = T )
+
+  # Split into separate words
+  by_space = strsplit( x, split = " ", fixed = T )[[1]]
+
+  # Split into separate lines that do not exceed specified
+  # character limit
+  split_into_lines =
+    c( F, diff( cumsum( nchar( by_space ) ) %% char_per_line ) < 0 )
+
+  split_into_lines = c(
+    which( split_into_lines ),
+    length( split_into_lines )
+  )
+  split_into_lines = unique( split_into_lines )
+
+  split_into_lines = cbind(
+    c( 1, split_into_lines[ -length( split_into_lines ) ] + 1 ),
+    c( split_into_lines )
+  )
+
+  # Initialize output
+  out = rep( "", nrow( split_into_lines ) )
+
+  # Loop over lines and convert back to individual character strings
+  for ( i in 1:nrow( split_into_lines ) ) {
+
+    index = split_into_lines[i,1]:split_into_lines[i,2]
+    out[i] = paste( by_space[index], collapse = " " )
+
+  }
+
+  # Identify cases for potential transcribing
+  for ( i in 1:length( out ) ) {
+
+    has_numbers = gregexpr( "[0-9]", out[i] )
+    new_val = out[i]
+    if ( !all( has_numbers[[1]] == -1 ) ) {
+
+      for ( k in has_numbers[[1]] ) {
+        substr( new_val, start = k, stop = k ) = "|"
+      }
+      new_val = gsub( "|.|", "|||", new_val, fixed = T )
+      new_val = gsub( "p=|", "|||", new_val, fixed = T )
+      new_val = gsub( "p<|", "|||", new_val, fixed = T )
+
+      new_val = gsub( "||% CI", "95% CI", new_val, fixed = T )
+    }
+    out[i] = new_val
+
+  }
+  out = paste0( "  ", out )
+  if ( length( out ) > 1 ) out[-1] = paste0( " ", out[-1] )
+  out = paste( out, collapse = "\n" )
+
+  # Add placeholder for transcribing
+  out = gsub( '|||||||', '[[?]]', out, fixed = T )
+  out = gsub( '||||||', '[[?]]', out, fixed = T )
+  out = gsub( '|||||', '[[?]]', out, fixed = T )
+  out = gsub( '||||', '[[?]]', out, fixed = T )
+  out = gsub( '|||', '[[?]]', out, fixed = T )
+  out = gsub( '||', '[[?]]', out, fixed = T )
+
+  return( out )
+}
+
 
 ###
 ### 2) Functions interfacing with 'flextable'
