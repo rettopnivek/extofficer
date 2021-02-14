@@ -486,7 +486,7 @@ create_ft = function( tbl, tbl_header,
 #' @param skip_rows An optional logical vector of matching length
 #'   to \code{column} marked \code{TRUE} for rows to skip
 #'   when processing.
-#' @parm alpha A character string with the cut-off for significance.
+#' @param alpha A character string with the cut-off for significance.
 #'   For example, if p < 0.05 is deemed significant, \code{alpha}
 #'   would be '05'. If p < 0.005 is deemed significant, then
 #'   \code{alpha} would be '005'.

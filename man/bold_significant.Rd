@@ -27,6 +27,11 @@ where the decimal place is the 6th character in the string).}
 to \code{column} marked \code{TRUE} for rows to skip
 when processing.}
 
+\item{alpha}{A character string with the cut-off for significance.
+For example, if p < 0.05 is deemed significant, \code{alpha}
+would be '05'. If p < 0.005 is deemed significant, then
+\code{alpha} would be '005'.}
+
 \item{decimal_place}{The index for when the decimal place in
 the character string representing p-values starts. Values
 after this index will be compared against \code{alpha} to
